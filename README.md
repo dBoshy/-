@@ -56,6 +56,22 @@ chmod +x /etc/rc.d/rc.local
 
 systemctl enable --now rc-local
 
+Для стп сделать  перезапуск
+
+vim /etc/rc.d/rc.local
+
+#!/bin/sh
+
+systemctl restart openvswitch
+
+exit 0
+
+chmod +x /etc/rc.d/rc.local
+
+systemctl enable --now rc-local
+
+r-br (EcoRouter)
+
 
 Если Alt или другой, без NM, то настройки через конфиг:
 
@@ -252,3 +268,32 @@ host -t A srv1-hq.au.team
  
 kinit administrator@AU.TEAM
 klist
+
+
+Скрипт
+на пользователей
+
+#!/bin/bash
+
+# Создание пользователей и добавление в группы
+for ((i=1; i<=30; i++))
+do
+    username="user$i"
+    password="P@ssw0rd"
+
+    if [ $i -le 10 ]; then
+        samba-tool user create $username $password
+        samba-tool group addmembers group1 $username
+        echo "Пользователь $username создан и добавлен в группу group1"
+    elif [ $i -le 20 ]; then
+        samba-tool user create $username $password
+        samba-tool group addmembers group2 $username
+        echo "Пользователь $username создан и добавлен в группу group2"
+    else
+        samba-tool user create $username $password
+        samba-tool group addmembers group3 $username
+        echo "Пользователь $username создан и добавлен в группу group3"
+    fi
+done
+
+
