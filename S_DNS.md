@@ -102,6 +102,11 @@ AU.DOMEN = {
  #Редактируем файл /etc/krb5.conf.d/crypto-policies
  vi /etc/krb5.conf.d/crypto-policies
 
+[libdefaults]
+    default_tgs_enctypes = aes256-cts-hmac-sha1-96 aes128-cts-hmac-sha1-96 RC4-HMAC DES-CBC-CRC DES3-CBC-SHA1 DES-CBC-MD5
+    default_tkt_enctypes = aes256-cts-hmac-sha1-96 aes128-cts-hmac-sha1-96 RC4-HMAC DES-CBC-CRC DES3-CBC-SHA1 DES-CBC-MD5
+    preferred_enctypes = aes256-cts-hmac-sha1-96 aes128-cts-hmac-sha1-96 RC4-HMAC DES-CBC-CRC DES3-CBC-SHA1 DES-CBC-MD5
+
 https://redos.red-soft.ru/base/server-configuring/domain-config/samba-dns-backend-bind9-dlz/admin-samba-bind/
 
 
