@@ -148,3 +148,107 @@ sudo lvcreate --extents 100%FREE --name lv-example vg-example
 Например, вы хотите смонтировать созданный логический том в папку /opt. В таком случае, добавьте такую строку в файл /etc/fstab:
 
 /dev/vg-example/lv-example  /opt xfs defaults 0 1
+
+
+Samba и прочее на Alt:
+
+apt-get install bind
+apt-get install bind-utils
+apt-get install task-samba-dc
+
+при установке системы, задавать полное имя для DC (FQDN)!
+ 
+#Меняем имя на короткое
+hostnamectl set-hostname srv1-hq
+
+#Отключаем chroot:
+control bind-chroot disabled
+ 
+#Отключаем KRB5RCACHETYPE
+vim /etc/sysconfig/bind
+
+KRB5RCACHETYPE="none"
+Если нет, то дописать. 
+
+Для Бинда дописать 
+в vim /etc/bind/named
+
+в конце
+#include "/var/lib/samba/bind-dns/named.conf";
+
+Редактируем бинд
+vim /etc/bind/options.conf
+recursing-file "/var/run/recursing";
+
+tkey-gssapi-keytab "/var/lib/samba/bind-dns/dns.keytab";
+minimal-responses yes;
+
+****
+listen-on { any; };
+listen-on-v6 { none; };
+
+***
+forward first;
+forwarders { 77.88.8.8; };
+
+
+*****
+allow-query { any; };
+
+В конце 
+category lame-servers { null; };
+
+#Очищаем базы и конфигурацию Samba
+ 
+rm -f /etc/samba/smb.conf
+rm -rf /var/lib/samba
+rm -rf /var/cache/samba
+
+mkdir -p /var/lib/samba/sysvol
+
+
+#Пример команды создания контроллера домена au.team в пакетном режиме:
+ 
+samba-tool domain provision --realm=au.team --domain=au --adminpass='P@ssw0rd' --dns-backend=BIND9_DLZ --server-role=dc --use-rfc2307
+ 
+где:
+--realm=au.team - имя области Kerberos (LDAP), и DNS имя домена;
+--domain=au - имя домена (имя рабочей группы);
+--adminpass='P@ssw0rd' - пароль основного администратора домена;
+--dns-backen=BIND9_DLZ -  бэкенд DNS-сервера;
+--server-role=dc - тип серверной роли;
+--use-rfc2307 - позволяет поддерживать расширенные атрибуты типа UID и GID в схеме LDAP и ACL на файловой системе Linux.
+
+systemctl enable --now samba
+systemctl enable --now bind
+
+
+#Заменяем файл krb5.conf, находящийся в каталоге /etc/ на файл, созданный в момент создания домена Samba
+ 
+cp /var/lib/samba/private/krb5.conf /etc/krb5.conf
+ 
+#Меняем адрес DNS сервера на 127.0.0.1
+ 
+echo nameserver 127.0.0.1 > /etc/net/ifaces/enp6s18/resolv.conf
+ 
+#Перезагружаем сервер
+ 
+reboot
+
+samba-tool domain info 127.0.0.1
+
+Просмотр предоставляемых служб
+ 
+smbclient -L localhost -Uadministrator
+
+#Проверка имён хостов
+ 
+host -t SRV _kerberos._udp.au.team.
+host -t SRV _ldap._tcp.au.team.
+host -t A srv1-hq.au.team
+
+
+#Проверка Kerberos (имя домена должно быть в верхнем регистре):
+ 
+kinit administrator@AU.TEAM
+klist
