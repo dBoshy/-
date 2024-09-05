@@ -297,3 +297,12 @@ do
 done
 
 
+
+ ssh
+ https://redos.red-soft.ru/base/manual/utilites/ssh-with-rsa/
+
+nginx
+https://redos.red-soft.ru/base/server-configuring/other-utilites/sett-nginx-for-nodejs/
+
+https://redos.red-soft.ru/base/server-configuring/monitoring/zabbix-red-os-7-3/
+
